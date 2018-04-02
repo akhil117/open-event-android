@@ -286,6 +286,14 @@ public class SpeakerDetailsActivity extends BaseActivity implements AppBarLayout
         }
 
     }
+
+    private void loadData() {
+        speakerDetailsViewModel.getSpeaker(speakerName).observe(this, speakerData -> {
+            selectedSpeaker = speakerData;
+            loadSpeakerDetails();
+        });
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -298,10 +306,7 @@ public class SpeakerDetailsActivity extends BaseActivity implements AppBarLayout
 
         gridLayoutManager.setSpanCount(spanCount);
 
-        speakerDetailsViewModel.getSpeaker(speakerName).observe(this, speakerData -> {
-            selectedSpeaker = speakerData;
-            loadSpeakerDetails();
-        });
+        loadData();
     }
 
     @Override

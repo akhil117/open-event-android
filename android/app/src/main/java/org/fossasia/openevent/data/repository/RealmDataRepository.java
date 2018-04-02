@@ -8,6 +8,7 @@ import org.fossasia.openevent.common.arch.LiveRealmDataObject;
 import org.fossasia.openevent.common.events.BookmarkChangedEvent;
 import org.fossasia.openevent.config.StrategyRegistry;
 import org.fossasia.openevent.core.auth.model.User;
+import org.fossasia.openevent.data.DiscountCode;
 import org.fossasia.openevent.data.Event;
 import org.fossasia.openevent.data.FAQ;
 import org.fossasia.openevent.data.Microlocation;
@@ -230,15 +231,20 @@ public class RealmDataRepository {
 
         return realm.where(Track.class)
                 .like("name", wildcardQuery, Case.INSENSITIVE)
-                .findAllSorted("name");
+                .sort("name")
+                .findAll();
     }
 
     public RealmResults<Track> getTracks() {
-        return realm.where(Track.class).findAllSortedAsync("name");
+        return realm.where(Track.class)
+                .sort("name")
+                .findAllAsync();
     }
 
     public RealmResults<Track> getTracksSync() {
-        return realm.where(Track.class).findAllSorted("name");
+        return realm.where(Track.class)
+                .sort("name")
+                .findAll();
     }
 
     public Track getTrack(int trackId) {
@@ -377,11 +383,15 @@ public class RealmDataRepository {
         return realm.where(Session.class)
                 .equalTo("track.id", trackId)
                 .like("title", wildcardQuery, Case.INSENSITIVE)
-                .findAllSorted("startsAt");
+                .sort("startsAt")
+                .findAll();
     }
 
     public RealmResults<Session> getSessionsByLocation(String location) {
-        return realm.where(Session.class).equalTo("microlocation.name", location).findAllSortedAsync(Session.START_TIME);
+        return realm.where(Session.class)
+                .equalTo("microlocation.name", location)
+                .sort(Session.START_TIME)
+                .findAllAsync();
     }
 
     public RealmResults<Session> getSessionsByDate(String date) {
@@ -394,7 +404,8 @@ public class RealmDataRepository {
         return realm.where(Session.class)
                 .equalTo("startDate", date)
                 .like("title", wildcardQuery, Case.INSENSITIVE)
-                .findAllSorted(sortCriteria);
+                .sort(sortCriteria)
+                .findAllAsync();
     }
 
     public RealmResults<Session> getBookMarkedSessions() {
@@ -459,12 +470,20 @@ public class RealmDataRepository {
         return realm.where(Speaker.class).equalTo("name", speakerName).findFirstAsync();
     }
 
+    public RealmResults<Speaker> getSpeakersForName(String speakerName){
+        return realm.where(Speaker.class).equalTo("name", speakerName).findAllAsync();
+    }
+
     public RealmResults<Speaker> getSpeakers(String sortCriteria) {
-        return realm.where(Speaker.class).findAllSortedAsync(sortCriteria);
+        return realm.where(Speaker.class)
+                .sort(sortCriteria)
+                .findAllAsync();
     }
 
     public RealmResults<Speaker> getSpeakersSync(String sortCriteria) {
-        return realm.where(Speaker.class).findAllSorted(sortCriteria);
+        return realm.where(Speaker.class)
+                .sort(sortCriteria)
+                .findAllAsync();
     }
 
     public RealmResults<Speaker> getSpeakersFiltered(String query, String sortCriteria) {
@@ -472,7 +491,8 @@ public class RealmDataRepository {
 
         return realm.where(Speaker.class)
                 .like("name", wildcardQuery, Case.INSENSITIVE)
-                .findAllSorted(sortCriteria);
+                .sort(sortCriteria)
+                .findAllAsync();
     }
 
     public RealmResults<Speaker> getFeaturedSpeakers() {
@@ -497,7 +517,30 @@ public class RealmDataRepository {
     }
 
     public RealmResults<Sponsor> getSponsors() {
-        return realm.where(Sponsor.class).findAllSortedAsync("level", Sort.DESCENDING, "name", Sort.ASCENDING);
+        return realm.where(Sponsor.class)
+                .sort("level", Sort.DESCENDING, "name", Sort.ASCENDING)
+                .findAllAsync();
+    }
+
+    //DiscountCode section
+
+    private void saveDiscountCodesinRealm(List<DiscountCode> discountCodes) {
+        Realm realm = Realm.getDefaultInstance();
+        realm.executeTransaction(realm1 -> realm1.insertOrUpdate(discountCodes));
+        realm.close();
+    }
+
+    public Completable saveDiscountCodes(final List<DiscountCode> discountCodes) {
+        return Completable.fromAction(() -> {
+            saveDiscountCodesinRealm(discountCodes);
+            Timber.d("Saved DiscountCodes");
+        });
+    }
+
+    public RealmResults<DiscountCode> getDiscountCodes() {
+        return realm.where(DiscountCode.class)
+                .sort("code")
+                .findAllAsync();
     }
 
     // Location Section
@@ -516,11 +559,15 @@ public class RealmDataRepository {
     }
 
     public RealmResults<Microlocation> getLocations() {
-        return realm.where(Microlocation.class).findAllSortedAsync("name");
+        return realm.where(Microlocation.class)
+                .sort("name")
+                .findAllAsync();
     }
 
     public RealmResults<Microlocation> getLocationsSync() {
-        return realm.where(Microlocation.class).findAllSorted("name");
+        return realm.where(Microlocation.class)
+                .sort("name")
+                .findAll();
     }
 
     //Session Types Section
@@ -539,11 +586,15 @@ public class RealmDataRepository {
     }
 
     public RealmResults<SessionType> getSessionTypes() {
-        return realm.where(SessionType.class).findAllSortedAsync("name");
+        return realm.where(SessionType.class)
+                .sort("name")
+                .findAllAsync();
     }
 
     public RealmResults<SessionType> getSessionTypesSync() {
-        return realm.where(SessionType.class).findAllSorted("name");
+        return realm.where(SessionType.class)
+                .sort("name")
+                .findAll();
     }
 
     // Dates Section
@@ -572,7 +623,7 @@ public class RealmDataRepository {
     public RealmResults<EventDates> getEventDatesSync(){
         return realm.where(EventDates.class).findAll();
     }
-    
+
     // Notifications section
 
     public Completable saveNotifications(final List<Notification> notifications) {
@@ -590,7 +641,9 @@ public class RealmDataRepository {
     }
 
     public RealmResults<Notification> getNotifications() {
-        return realm.where(Notification.class).findAllSortedAsync("receivedAt");
+        return realm.where(Notification.class)
+                .sort("receivedAt")
+                .findAllAsync();
     }
 
     // FAQ Section
